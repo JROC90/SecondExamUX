@@ -1,7 +1,21 @@
 const { 
   pingdb, 
   connectToMongoDB, 
-  closeMongoDBConnection } = require('./services/configdb.js');
+  closeMongoDBConnection } = require('./dbconfig.js');
+
+const {
+  initiateFirebase,
+  createUser,
+  updateUserEmail,
+  updateUserPassword,
+  updateUserDisplayName,
+  sendPasswordResetEmail,
+  logIn,
+  logOut,
+  deleteUser } = require ('./fbconfig.js')
+
+// Load environment variables from a .env file into the Node.js process environment
+require('dotenv').config();
 
 // Importing 'express' for building the server and creating an app instance.
 const express = require('express');
@@ -20,7 +34,7 @@ const urlEncodeParser = bodyParser.urlencoded({ extended: true });
 appInstance.use(urlEncodeParser);
 
 // Setting the port number for the server to listen on.
-const port = 3001;
+const port = process.env.PORT;
 
 // Starting the server and testing the connection to the MongoDB database.
 appInstance.listen(port,async ()=>{
