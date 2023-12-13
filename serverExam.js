@@ -1,16 +1,3 @@
-
-const { 
-  Customer, 
-  Owner, 
-  Organization, 
-  BankAccount, 
-  Property, 
-  Rating, 
-  Room, 
-  Reservation, 
-  ReservationStatus, 
-  PaymentOptions} = require('./enviroment/Classes.js');
-
 const { 
   pingdb, 
   connectToMongoDB, 
