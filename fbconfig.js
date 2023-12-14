@@ -15,7 +15,8 @@ const firebaseConfig = {
 };
 
 let firebaseInstance;
-
+let app;
+let AppGetAuth;
 
 /**
  * Initializes the Firebase Admin and Basic instances using the provided service account 
@@ -25,9 +26,10 @@ let firebaseInstance;
 const initiateFirebase = () => {
   try {
     console.log("Initializing Firebase Admin instance...");
-    admin.initializeApp({
+    app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
+    AppGetAuth = getAuth(app);
     console.log("Firebase Admin instance initialized successfully.");
   } catch (error) {
     console.log("Error initializing Firebase Admin:", error);
@@ -50,20 +52,21 @@ const initiateFirebase = () => {
  * @param {string} email - The user's email address.
  * @param {string} password - The user's password.
  */
-const createUser = ( name, lastName, email, password ) => {
-  let displayName = name + ' ' + lastName;
-  admin.auth().createUser({
-    email: email,
-    password: password,
-    displayName: displayName,
-  })
-  .then((userRecord) => {
+const createUser = async (name, lastName, email, password) => {
+  try {
+    let displayName = name + ' ' + lastName;
+    const userRecord = await AppGetAuth.createUser({
+      email: email,
+      password: password,
+      displayName: displayName,
+    });
+
     console.log('Successfully created new user:', userRecord.uid);
-  })
-  .catch((error) => {
-    console.log('Error creating new user:', error);
-    throw new Error('Error creating new user:', error)
-  });
+    return userRecord.uid; // You can return the user ID or any other relevant information
+  } catch (error) {
+    console.error('Error creating new user:', error);
+    throw new Error('Error creating new user:', error);
+  }
 };
 
 /**
@@ -74,7 +77,7 @@ const createUser = ( name, lastName, email, password ) => {
  */
 const getUserUID = async (idToken) => {
   try {
-    const decodedToken = await getAuth().verifyIdToken(idToken);
+    const decodedToken = await AppGetAuth.verifyIdToken(idToken);
     return decodedToken.uid;
   } catch (error) {
     console.log('Error getting user UID:', error);
@@ -99,7 +102,7 @@ const updateUserAttribute = async (idToken, field, value) => {
   updateObject[field] = value;
 
   try {
-    const userRecord = await getAuth().updateUser(uid, updateObject);
+    const userRecord = await AppGetAuth.updateUser(uid, updateObject);
     console.log(`Successfully updated ${field} for user`, userRecord.toJSON());
   } catch (error) {
     console.log(`Error updating ${field} for user:`, error);

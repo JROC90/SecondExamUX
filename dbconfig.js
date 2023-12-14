@@ -1,9 +1,25 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config();
+
+/**
+ * MongoDB connection URI.
+ * @type {string}
+ */
 const uri = process.env.MONGODB_URI;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+/**
+ * MongoDB client configured with specific options.
+ * @type {MongoClient}
+ */
 const client = new MongoClient(uri, {
+  /**
+   * Server API options for the MongoDB client.
+   * @type {{
+   *   version: ServerApiVersion,
+   *   strict: boolean,
+   *   deprecationErrors: boolean
+   * }}
+   */
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -11,46 +27,64 @@ const client = new MongoClient(uri, {
   }
 });
 
+/**
+ * Attempts to ping the database to check the connection status.
+ * @returns {Promise<boolean>} Returns a Promise that resolves to a boolean indicating whether the connection was successful.
+ */
 async function pingdb() {
-  let connectionStablish = false;
+  let connectionEstablished = false;
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Connection to the database established successfully");
-    connectionStablish = true;
+    connectionEstablished = true;
   } catch {
-    console.log("Failed to establish a connection to the database")
+    console.log("Failed to establish a connection to the database");
   } finally {
-    // Ensures that the client will close when you finish/error
     await client.close();
-    return connectionStablish;
+    return connectionEstablished;
   }
 }
 
+/**
+ * Connects to the MongoDB database and returns the connected client.
+ * @returns {Promise<MongoClient>} Returns a Promise that resolves to the connected MongoClient.
+ * @throws {Error} Throws an error if the connection cannot be established.
+ */
 async function connectToMongoDB() {
   try {
     await client.connect();
-    await client.db("admin").command({ ping: 1 });
     console.log("Connection to the database established successfully");
-    return client; // Return the connected client for external use
+    return client;
   } catch (error) {
     console.error("Failed to establish a connection to the database:", error);
-    throw error; // Re-throw the error for external handling
+    throw error;
   }
 }
 
+/**
+ * Closes the MongoDB connection.
+ * @returns {Promise<void>} Returns a Promise that resolves when the connection is closed.
+ * @throws {Error} Throws an error if there is an issue closing the connection.
+ */
 async function closeMongoDBConnection() {
   try {
     await client.close();
     console.log("MongoDB connection closed");
   } catch (error) {
     console.error("Error closing MongoDB connection:", error);
-    throw error; // Re-throw the error for external handling
+    throw error;
   }
 }
 
+/**
+ * Module exports.
+ * @type {{
+ *   pingdb: typeof pingdb,
+ *   connectToMongoDB: typeof connectToMongoDB,
+ *   closeMongoDBConnection: typeof closeMongoDBConnection
+ * }}
+ */
 module.exports = {
   pingdb,
   connectToMongoDB,
