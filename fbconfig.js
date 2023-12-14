@@ -76,7 +76,7 @@ const createUser = async (name, lastName, email, password) => {
  * @returns {Promise<string>} A Promise that resolves to the user's UID.
  * @throws {Error} If an error occurs during UID retrieval.
  */
-const getUserUID = async (idToken) => {
+const getUserUID = async (idToken) => { 
   try {
     const decodedToken = await AppGetAuth.verifyIdToken(idToken);
     return decodedToken.uid;
@@ -96,7 +96,7 @@ const getUserUID = async (idToken) => {
  * @throws {Error} If an error occurs during the update.
  */
 const updateUserAttribute = async (idToken, field, value) => {
-  const uid = getUserUID(idToken);
+  const uid = await getUserUID(idToken);
   if (!uid) return;
 
   const updateObject = {};
@@ -181,9 +181,11 @@ const logIn = async (email, password) => {
     await admin.auth().getUserByEmail(email);
     const userCredential = await signInBasic(getAuthBasic(), email, password);
     const user = userCredential.user;
+    const idToken = await user.getIdToken(true);
+    console.log('"',idToken,'"');
 
     // Return tokens
-    return [await user.getIdToken(), user.refreshToken];
+    return [idToken , user.refreshToken];
   } catch (error) {
     console.log("Login failed:", error);
     throw new Error("Login failed: Incorrect password or email", error);

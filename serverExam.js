@@ -29,8 +29,6 @@ appInstance.use(cors());
 
 // Importing 'body-parser' middleware for parsing incoming request bodies
 const bodyParser = require('body-parser');
-const { initializeApp } = require('firebase/app');
-const { app } = require('firebase-admin');
 
 // Middleware for handling URL-encoded data using 'body-parser'
 const urlEncodeParser = bodyParser.urlencoded({ extended: true });
@@ -71,9 +69,7 @@ appInstance.post("/createUser", async (req, res) => {
 
     // Adding User to Firebase and geting idToken
     await createUser(name,lastName,email,password);
-    console.log('paso');
-    const [idToken,refreshToken] = await logIn(email,password);
-
+    console.log("Usuario: ", email, "creado exitosamente en firebase");
     // Connect to MongoDB
     let client = await connectToMongoDB();
     const db = client.db(dbName);
@@ -83,17 +79,85 @@ appInstance.post("/createUser", async (req, res) => {
 
     // Insert the user into the collection
     await collection.insertOne(user);
+    console.log("Usuario: ", email, "creado exitosamente en Mongodb");
 
     // Respond with success message and user details
-    res.status(201).json({ message: 'User created successfully', idToken, refreshToken });
+    res.status(201).json({ message: 'User created successfully' });
 
   } catch (error) {
     // Handle errors
     console.error('Error creating user:', error);
     res.status(500).json({ error: 'Internal Server Error' });
     return;
+  }
+  console.log("Usuario Creado");
+});
+
+// Endpoint to logIn a User
+appInstance.post('/logIn', async (req, res) => {
+  const { email = '', password = '' } = req.body;
+
+  // Check if required fields are present
+  if (!email || !password)
+    return res.status(400).json({ error: 'Email and password are required for logging in.' });
+
+  try {
+    // Verify user credentials and get tokens
+    const [idToken, refreshToken] = await logIn(email, password);
+
+    // Respond with success message and user details
+    res.status(200).json({
+      message: 'Login successful',
+      idToken,
+      refreshToken,
+    });
+  } catch (error) {
+    // Handle login errors
+    console.error('Error logging in user:', error);
+
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      // Return specific error message for user not found or wrong password
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // General error response
+    res.status(500).json({ error: 'Internal Server Error' });
   } finally {
     // Log a message after processing
-    console.log("Usuario Creado");
+    console.log('User logged in');
+  }
+});
+
+// Endpoint to LogOut a user that has been loggedIn
+appInstance.post('/logOut', async (req, res) => {
+  const { idToken = '' } = req.body;
+
+  // Check if required fields are present
+  if (!idToken) {
+    return res.status(400).json({ error: 'idToken is required for logging out.' });
+  }
+
+  try {
+    // Attempt to log the user out
+    console.log("idToken: ",idToken);
+    const isLoggedOut = await logOut(idToken);
+    console.log("Paso", isLoggedOut);
+
+    // If successfully logged out, respond with success message
+    if (isLoggedOut) {
+      return res.status(200).json({ message: 'Logout successful' });
+    } else {
+      // Handle case where logout was not successful (e.g., invalid tokens)
+      return res.status(401).json({ error: 'Invalid tokens or user not found' });
+    }
+  } catch (error) {
+    // Handle logout errors
+    console.error('Error logging out user:', error);
+
+    // General error response
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    // Log a message after processing
+    console.log('User logged out');
   }
 });
