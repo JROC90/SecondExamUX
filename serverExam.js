@@ -72,7 +72,7 @@ appInstance.post("/createUser", async (req, res) => {
     // Adding User to Firebase and geting idToken
     await createUser(name,lastName,email,password);
     console.log('paso');
-    const idToken = await logIn(email,password);
+    const [idToken,refreshToken] = await logIn(email,password);
 
     // Connect to MongoDB
     let client = await connectToMongoDB();
@@ -85,7 +85,7 @@ appInstance.post("/createUser", async (req, res) => {
     await collection.insertOne(user);
 
     // Respond with success message and user details
-    res.status(201).json({ message: 'User created successfully', user, idToken });
+    res.status(201).json({ message: 'User created successfully', idToken, refreshToken });
 
   } catch (error) {
     // Handle errors

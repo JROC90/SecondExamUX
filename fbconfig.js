@@ -2,6 +2,7 @@ const admin = require( 'firebase-admin');
 const { initializeApp } = require('firebase/app');
 const serviceAccount = require("./credentials.json");
 const { getAuth } = require('firebase-admin/auth');
+const { getAuth: getAuthBasic, signInWithEmailAndPassword: signInBasic } = require('firebase/auth')
 require('dotenv').config();
 
 const firebaseConfig = {
@@ -178,7 +179,7 @@ const sendPasswordResetEmail = async (email) => {
 const logIn = async (email, password) => {
   try {
     await admin.auth().getUserByEmail(email);
-    const userCredential = await admin.auth().signInWithEmailAndPassword(email, password);
+    const userCredential = await signInBasic(getAuthBasic(), email, password);
     const user = userCredential.user;
 
     // Return tokens
