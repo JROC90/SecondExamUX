@@ -103,13 +103,12 @@ appInstance.post('/logIn', async (req, res) => {
 
   try {
     // Verify user credentials and get tokens
-    const [idToken, refreshToken] = await logIn(email, password);
+    const userUID = await logIn(email, password);
 
     // Respond with success message and user details
     res.status(200).json({
       message: 'Login successful',
-      idToken,
-      refreshToken,
+      userUID
     });
   } catch (error) {
     // Handle login errors
@@ -130,22 +129,21 @@ appInstance.post('/logIn', async (req, res) => {
 
 // Endpoint to LogOut a user that has been loggedIn
 appInstance.post('/logOut', async (req, res) => {
-  const { idToken = '' } = req.body;
+  const { userUID = '' } = req.body;
 
   // Check if required fields are present
-  if (!idToken) {
-    return res.status(400).json({ error: 'idToken is required for logging out.' });
+  if (!userUID) {
+    return res.status(400).json({ error: 'UID is required for logging out.' });
   }
 
   try {
     // Attempt to log the user out
-    console.log("idToken: ",idToken);
-    const isLoggedOut = await logOut(idToken);
+    const isLoggedOut = await logOut(userUID);
     console.log("Paso", isLoggedOut);
 
     // If successfully logged out, respond with success message
     if (isLoggedOut) {
-      return res.status(200).json({ message: 'Logout successful' });
+      return res.status(200).json({ message: 'Logout successful', isLoggedOut });
     } else {
       // Handle case where logout was not successful (e.g., invalid tokens)
       return res.status(401).json({ error: 'Invalid tokens or user not found' });
@@ -156,8 +154,8 @@ appInstance.post('/logOut', async (req, res) => {
 
     // General error response
     res.status(500).json({ error: 'Internal Server Error' });
-  } finally {
-    // Log a message after processing
-    console.log('User logged out');
-  }
+    return;
+  } 
+  console.log('User logged out');
+
 });

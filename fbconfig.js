@@ -78,7 +78,7 @@ const createUser = async (name, lastName, email, password) => {
  */
 const getUserUID = async (idToken) => { 
   try {
-    const decodedToken = await AppGetAuth.verifyIdToken(idToken);
+    const decodedToken = await app.auth().verifyIdToken(idToken);
     return decodedToken.uid;
   } catch (error) {
     console.log('Error getting user UID:', error);
@@ -180,12 +180,10 @@ const logIn = async (email, password) => {
   try {
     await admin.auth().getUserByEmail(email);
     const userCredential = await signInBasic(getAuthBasic(), email, password);
-    const user = userCredential.user;
-    const idToken = await user.getIdToken(true);
-    console.log('"',idToken,'"');
-
-    // Return tokens
-    return [idToken , user.refreshToken];
+    const userUID = userCredential.user.uid;
+    
+    // Return UID
+    return userUID;
   } catch (error) {
     console.log("Login failed:", error);
     throw new Error("Login failed: Incorrect password or email", error);
@@ -198,9 +196,9 @@ const logIn = async (email, password) => {
  * @returns {Promise<boolean>} A Promise that resolves to true if the logout is successful.
  * @throws {Error} If logout fails.
  */
-const logOut = async (idToken) => {
+const logOut = async (userUID) => {
   try {
-    const uid = await getUserUID(idToken);
+
     // Revoke refresh tokens for the user
     await admin.auth().revokeRefreshTokens(uid);
     console.log("User logged out successfully");
