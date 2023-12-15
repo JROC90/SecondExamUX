@@ -179,7 +179,9 @@ const sendPasswordResetEmail = async (email) => {
 const logIn = async (email, password) => {
   try {
     await admin.auth().getUserByEmail(email);
+    console.log("paso");
     const userCredential = await signInBasic(getAuthBasic(), email, password);
+    console.log("paso`2");
     const userUID = userCredential.user.uid;
     
     // Return UID
@@ -200,7 +202,7 @@ const logOut = async (userUID) => {
   try {
 
     // Revoke refresh tokens for the user
-    await admin.auth().revokeRefreshTokens(uid);
+    await admin.auth().revokeRefreshTokens(userUID);
     console.log("User logged out successfully");
     return true;
   } catch (error) {
