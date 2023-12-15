@@ -200,6 +200,10 @@ const logOut = async (userUID) => {
   try {
 
     // Revoke refresh tokens for the user
+    let userRecord = await admin.auth().getUser(uid);
+    if (!userRecord.tokensValidAfterTime)
+    console.log("User has not any session");
+    return false;
     await admin.auth().revokeRefreshTokens(uid);
     console.log("User logged out successfully");
     return true;
